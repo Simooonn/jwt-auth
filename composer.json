@@ -1,5 +1,5 @@
 {
-    "name": "hashyoo/jwt",
+    "name": "hashyoo/jwt-auth",
     "description": "Json web token，接口登录，支持单端、单点和多设备登录，需要redis支持",
     "type": "library",
     "keywords": ["jwt", "php", "laravel", "接口登录", "单设备登录", "多设备登录", "单点登录"],
