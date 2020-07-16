@@ -1,0 +1,5 @@
+/composer.lock
+/.idea
+/.env
+/test.php
+/vendor
