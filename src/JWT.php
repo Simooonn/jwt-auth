@@ -10,26 +10,20 @@ namespace HashyooJWTAuth;
 
 class JWT
 {
-    protected $config;
 
+    protected $config;
 
     protected function __construct()
     {
         $this->config = config('hashyoo-jwt');
     }
     
-    
-    
-    private function base64_encode($data){
-        return base64_encode($data);
+    public function get_ttl(){
+        $ttl_time        = $this->config['ttl'] * 60 * 60;
+        return $ttl_time;
     }
     
-    private function jwt_header(){
-        return [
-          'typ'=>'hashyoo-jwt-auth',
-          'alg'=>config('hashyoo-jwt.algo')
-        ];
-    }
+  
 
 
 }
