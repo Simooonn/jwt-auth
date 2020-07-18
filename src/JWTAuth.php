@@ -16,15 +16,19 @@ class JWTAuth extends JWT
 
     private $defaults;
 
-    private $guards;
+    private $guard_list;
 
-    private $providers;
+    private $provider_list;
 
     private $model;
 
-    private $provider_driver;
+    private $guard;
+
+    private $provider;
 
     private $user;
+
+    private $token;
 
     //    protected $config;
 
@@ -36,8 +40,8 @@ class JWTAuth extends JWT
     {
         parent::__construct();
         $this->defaults  = $this->config['defaults'];
-        $this->guards    = $this->config['guards'];
-        $this->providers = $this->config['providers'];
+        $this->guard_list    = $this->config['guards'];
+        $this->provider_list = $this->config['providers'];
 
     }
 
@@ -51,6 +55,22 @@ class JWTAuth extends JWT
         $new_jwt = new Token();
         $new_jwt->set_user($this->user);
         $token                      = $new_jwt->create_token();
+        $this->token = $token;
+     /*   
+        //判断guard driver模式
+        $guard_driver = $this->guard['driver'];
+        
+        switch ($guard_driver)
+        {
+            case 'session':
+                return [];
+                break;
+            case 'session':
+                return [];
+                break;
+            default:
+                return [];
+        }*/
 
         //redis存放 token
         $this->redis_set_token($token);
@@ -87,7 +107,7 @@ class JWTAuth extends JWT
      */
     private function check_password($credentials, $password)
     {
-        $provider_driver = $this->provider_driver;
+        $provider_driver = $this->provider['driver'];
         $s_pass          = $credentials[$password];
 
         //查询账号数据
@@ -117,6 +137,64 @@ class JWTAuth extends JWT
     }
 
 
+
+
+    /**
+     * redis存放 token
+     *
+     * @param string $token
+     *
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    private function redis_set_token($token = ''){
+        $arr_token = explode('.',$token);
+        $arr_claim = json_decode(base64_decode($arr_token[1]),true);
+        $n_lifetime = $arr_claim['lft'];
+        $n_userid = $arr_claim['sub'];
+
+        $arr_jwt_token = [
+          'id'=>$n_userid,
+          'access_token'=>$token,
+          'token_type'=>'bearer',
+          'expires_in'=>$n_lifetime,
+        ];
+        predis_str_set($this->redis_token_key.$n_userid,$arr_jwt_token,$n_lifetime,$this->redis_db);
+
+    }
+
+//
+//    /**
+//     * redis存放 user
+//     *
+//     * @param string $token
+//     *
+//     * @author wumengmeng <wu_mengmeng@foxmail.com>
+//     */
+//    public function redis_set_user($token = ''){
+//        $arr_token = explode('.',$token);
+//        $arr_claim = json_decode(base64_decode($arr_token[1]),true);
+//        $n_lifetime = $arr_claim['lft'];
+//        $n_userid = $arr_claim['sub'];
+//
+//        $arr_jwt_token = [
+//          'id'=>$n_userid,
+//          'access_token'=>$token,
+//          'token_type'=>'bearer',
+//          'expires_in'=>$n_lifetime,
+//        ];
+//        predis_str_set('jwt_token_user_'.$n_userid,$arr_jwt_token,$n_lifetime,$this->redis_db);
+//
+//    }
+
+    public function redis_set_user(){
+
+    }
+    
+    public function get_guard(){
+        return $this->guard;
+    }
+
+
     /**
      * guard
      *
@@ -128,14 +206,16 @@ class JWTAuth extends JWT
     public function guard($module = '')
     {
         $module   = $module === '' ? $this->defaults['guard'] : $module;
-        $provider = $this->providers[$this->guards[$module]['provider']];
+        $provider = $this->provider_list[$this->guard_list[$module]['provider']];
         if (is_null($provider)) {
             return false;
         }
 
         $provider_driver       = $provider['driver'];
         $provider_model        = $provider['model'];
-        $this->provider_driver = $provider_driver;
+        $this->guard = $this->guard_list[$module];
+        $this->provider = $provider;
+        //        $this->provider_driver = $provider_driver;
 
         switch ($provider_driver) {
             case 'eloquent':
@@ -163,28 +243,39 @@ class JWTAuth extends JWT
             return false;
         }
 
-        return $this->user;
+        return $this->token;
     }
 
-    public function redis_set_token($token = ''){
-        $arr_token = explode('.',$token);
-        $arr_claim = json_decode(base64_decode($arr_token[1]),true);
-        $n_lifetime = $arr_claim['lft'];
-        $n_userid = $arr_claim['sub'];
+    /**
+     * 检测登录状态
+     *
+     * @return bool
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function check(){
+        $new_token = new Token();
+        $guard_driver = $this->guard['driver'];
+        switch ($guard_driver)
+        {
+            case 'redis':
+                $result = $new_token->check_token($guard_driver);
+                break;
+            default:
+                return false;
 
-        $arr_jwt_token = [
-          'id'=>$n_userid,
-          'access_token'=>$token,
-          'token_type'=>'bearer',
-          'expires_in'=>$n_lifetime,
-        ];
-        predis_str_set('jwt_token_user_'.$n_userid,$arr_jwt_token,$n_lifetime,15);
-
+        }
+        return $result;
     }
-
-    public function redis_set_user(){
-
+    
+    public function user(){
+        dd($this);
+        $arr_user = $this->jwt_user();
+        return $arr_user;
     }
-
+    
+    public function user_id(){
+        $n_userid = $this->jwt_user_id();
+        return $n_userid;
+    }
 
 }
