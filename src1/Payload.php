@@ -25,25 +25,25 @@ class Payload extends JWT
         parent::__construct();
     }
 
-    private function base64_json_encode($data)
+    public function base64_json_encode($data)
     {
         $result = str_replace('=', '', base64_encode(json_encode($data)));
         return $result;
     }
 
-    private function jwt_header()
+    public function jwt_header()
     {
         return [
           'typ' => 'hashyoo-jwt-auth',
           'alg' => $this->config['algo'],
         ];
     }
-//
-//    public function set_user($arr_user = [])
-//    {
-//        $this->user = $arr_user;
-//
-//    }
+
+    public function set_user($arr_user = [])
+    {
+        $this->user = $arr_user;
+
+    }
 
     /**
      * 声明
@@ -53,8 +53,10 @@ class Payload extends JWT
      * @return array
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    private function claim($n_user_id = 0)
+    public function claim()
     {
+        $n_user_id = $this->user['id'];
+
         $now_time        = time();
         $ttl_time        = $this->get_ttl();
         $arr_data        = [];
@@ -65,28 +67,18 @@ class Payload extends JWT
         return $arr_data;
     }
 
-    private function payload_header()
+    public function payload_header()
     {
         $payload_header = $this->base64_json_encode($this->jwt_header());
         return $payload_header;
     }
 
-    private function payload_claim($n_user_id = 0)
+    public function payload_claim()
     {
-        $payload_claim = $this->base64_json_encode($this->claim($n_user_id));
+        $payload_claim = $this->base64_json_encode($this->claim());
         return $payload_claim;
-    }
 
-    public function get_payload($n_user_id = 0){
-        //playload-header
-        $payload_header = $this->payload_header();
 
-        //playload-claim
-        $payload_claim = $this->payload_claim($n_user_id);
-
-        $payload = $payload_header . '.' . $payload_claim;
-        
-        return $payload;
     }
 
 

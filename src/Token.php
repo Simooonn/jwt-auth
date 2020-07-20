@@ -11,22 +11,86 @@ namespace HashyooJWTAuth;
 class Token extends JWT
 {
 
-    private $user;
+    private $new_payload;
+    private $new_sign;
+    private $guard;
     private $token;
+//    private $provider;
 
-    /**
-     * JWT constructor.
-     *
-     */
-    public function __construct()
+    public function __construct($guard)
     {
         parent::__construct();
+        $this->new_payload = new Payload();
+        $this->new_sign = new Sign();
+        $this->guard = $guard;
 
+//        $this->provider = $this->config['providers'][$this->guard['provider']];
+        $this->token = $this->token();
+        $this->redis_key_token = $this->redis_token_key.$this->guard['provider'].'_';
     }
 
-    public function set_user($arr_user = [])
-    {
-        $this->user = $arr_user;
+    private function arr_token(){
+        $token = $this->token;
+        if(empty($token)){
+            throw new \Exception('token不存在');
+        }
+        $arr_token = explode('.',$token);
+        if(count($arr_token) != 3){
+            throw new \Exception('token参数格式错误');
+        }
+        
+        return $arr_token;
+    }
+    
+    private function get_arr_claim(){
+        $arr_token = $this->arr_token();
+        $arr_claim = json_decode(base64_decode($arr_token[1]),true);
+        
+        return $arr_claim;
+    }
+    
+    private function get_lifetime(){
+        $n_lifetime = $this->get_arr_claim()['lft'];
+        return $n_lifetime;
+    }
+
+    private function get_expiretime(){
+        $n_expiretime = $this->get_arr_claim()['exp'];
+        return $n_expiretime;
+    }
+
+    public function get_user_id(){
+        $n_user_id = intval($this->get_arr_claim()['sub']);
+        return $n_user_id;
+    }
+    
+    /**
+     * redis存放 token
+     *
+     *
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    private function redis_set_token(){
+        $token = $this->token;
+        $n_lifetime = $this->get_lifetime();
+        $n_userid = $this->get_user_id();
+
+        $arr_jwt_token = [
+          'id'=>$n_userid,
+          'access_token'=>$token,
+          'token_type'=>'bearer',
+          'expires_in'=>$n_lifetime,
+        ];
+        $redis_key = $this->redis_key_token.$n_userid;
+        $n_db = $this->redis_db;
+        predis_str_set($redis_key,$arr_jwt_token,$n_lifetime,$n_db);
+        
+        //TODO 设置用户信息
+    }
+
+    private function get_token(){
+        $token = is_null($this->token) ? $this->token():$this->token;
+        return $token;
     }
 
     /**
@@ -35,76 +99,49 @@ class Token extends JWT
      * @return string
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function create_token()
+    public function create_token($n_user_id = 0)
     {
+        $n_user_id = intval($n_user_id);
+        if($n_user_id <= 0){
+            throw new \Exception('用户id不存在');
+        }
 
-        $obj_payload = new Payload();
-        $obj_payload->set_user($this->user);
-
-        //playload-header
-        $payload_header = $obj_payload->payload_header();
-
-        //playload-claim
-        $payload_claim = $obj_payload->payload_claim();
-
-        $payload = $payload_header . '.' . $payload_claim;
+        $payload = $this->new_payload->get_payload($n_user_id);
 
         //签名signature
-        $obj_sign  = new Sign();
-        $signature = $obj_sign->signature($payload);
+        $signature = $this->new_sign->signature($payload);
         $token     = $payload . '.' . $signature;
         $this->token = $token;
+
+        //redis存放 token
+        $this->redis_set_token();
         return $token;
     }
-
-    public function get_token(){
-        $token_key = $this->config['token_key'];
-        $token = \Illuminate\Support\Facades\Request::header($token_key);
-        $this->token = $token;
-        return $token;
-    }
-
-//    public function decode_token_claim(){
-//        $token = $this->token;
-//        $arr_claim = json_decode(base64_decode(explode('.',$token)[1]),true);
-//        return $arr_claim;
-//    }
     
     public function check_token($guard_driver = ''){
-        $token = $this->get_token();
-        if(is_null($token)){
-            return false;
-        }
-        
-        $arr_token = explode('.',$token);
-        
+        $token = $this->token;
+
+        $arr_token = $this->arr_token();
+
         //签名验证 token是否合法
-        $obj_sign  = new Sign();
         $payload = $arr_token[0].'.'.$arr_token[1];
         $token_sign = $arr_token[2];
-        $signature = $obj_sign->signature($payload);
+        $signature = $this->new_sign->signature($payload);
         if($token_sign != $signature){
             return false;
         }
 
         //验证token是否过期
-        $arr_claim = json_decode(base64_decode($arr_token[1]),true);
-        $expire_time = $arr_claim['exp'];
+        $expire_time = $this->get_expiretime();
+        $n_userid = $this->get_user_id();
         $now_time = time();
         if($now_time >= $expire_time){
             return false;
         }
 
-        //登录驱动 redis、session
-        switch ($guard_driver)
-        {
-            case 'redis':
-                $n_userid = intval($arr_claim['sub']);
-                break;
-            default:
-                return false;
-        }
-        $arr_user_token = predis_str_get($this->redis_token_key.$n_userid,$this->redis_db);
+        $redis_key = $this->redis_key_token.$n_userid;
+        $n_db = $this->redis_db;
+        $arr_user_token = predis_str_get($redis_key,$n_db);
         $s_user_token = $arr_user_token['access_token'];
 
         //登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
@@ -112,8 +149,10 @@ class Token extends JWT
         if($jwt_model == 'se' && ($token !== $s_user_token)){
             return false;
         }
+
         return true;
     }
+
 
 
 }
