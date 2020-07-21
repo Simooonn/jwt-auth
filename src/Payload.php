@@ -14,23 +14,41 @@ use Illuminate\Support\Facades\Request;
 class Payload extends JWT
 {
 
-    private $user_id;
+    private $guard;//当前使用的guard
+    
+    private $provider;//当前使用的provider
+    
+    private $jwt_ttl;//token有效期
 
-    /**
-     * JWT constructor.
-     *
-     */
-    public function __construct()
+    public function __construct($guard)
     {
         parent::__construct();
+        $this->guard = $guard;
+        $this->provider = $this->config['providers'][$guard['provider']];
+        $this->jwt_ttl = is_null($this->provider['ttl']) ? null :$this->provider['ttl'] * 60 *60;
+//        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
     }
 
+    /**
+     * base64 json转码
+     *
+     * @param $data
+     *
+     * @return mixed
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     private function base64_json_encode($data)
     {
         $result = str_replace('=', '', base64_encode(json_encode($data)));
         return $result;
     }
 
+    /**
+     * jwt_header
+     *
+     * @return array
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     private function jwt_header()
     {
         return [
@@ -38,12 +56,18 @@ class Payload extends JWT
           'alg' => $this->config['algo'],
         ];
     }
-//
-//    public function set_user($arr_user = [])
-//    {
-//        $this->user = $arr_user;
-//
-//    }
+
+    /**
+     * token有效期
+     *
+     * @return float|int|null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    private function jwt_ttl()
+    {
+        $n_ttl = is_null($this->jwt_ttl) ? $this->get_ttl(): $this->jwt_ttl;
+        return $n_ttl;
+    }
 
     /**
      * 声明
@@ -56,7 +80,7 @@ class Payload extends JWT
     private function claim($n_user_id = 0)
     {
         $now_time        = time();
-        $ttl_time        = $this->get_ttl();
+        $ttl_time        = $this->jwt_ttl();
         $arr_data        = [];
         $arr_data['iat'] = $now_time;
         $arr_data['exp'] = $now_time + $ttl_time;
@@ -65,18 +89,40 @@ class Payload extends JWT
         return $arr_data;
     }
 
+    /**
+     * payload - header
+     *
+     * @return mixed
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     private function payload_header()
     {
         $payload_header = $this->base64_json_encode($this->jwt_header());
         return $payload_header;
     }
 
+    /**
+     * payload - claim
+     *
+     * @param int $n_user_id
+     *
+     * @return mixed
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     private function payload_claim($n_user_id = 0)
     {
         $payload_claim = $this->base64_json_encode($this->claim($n_user_id));
         return $payload_claim;
     }
 
+    /**
+     * payload
+     *
+     * @param int $n_user_id
+     *
+     * @return string
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     public function get_payload($n_user_id = 0){
         //playload-header
         $payload_header = $this->payload_header();

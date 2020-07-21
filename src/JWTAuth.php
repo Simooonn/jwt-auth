@@ -14,23 +14,25 @@ use Illuminate\Support\Facades\Hash;
 class JWTAuth extends JWT
 {
 
-    private $defaults;
+    private $defaults;//默认guard
 
-    private $guard_list;
+    private $guard_list;//guard列表
 
-    private $provider_list;
+    private $provider_list;//provider列表
 
-    private $guard;
+    private $guard;//当前使用的guard
 
-    private $provider;
+    private $provider;//当前使用的provider
 
-    private $user;
+    private $user;//用户信息
 
-    private $token;
+    private $token;//用户token
 
-    private $new_model;
+    private $new_jwt_model;//JwtModel实例化
 
-    private $new_token;
+    private $new_token;//Token实例化
+
+    private $redis_key_user;//用户redis前缀
 
     public function __construct($module = '')
     {
@@ -40,10 +42,20 @@ class JWTAuth extends JWT
         $this->provider_list = $this->config['providers'];
         $this->set_guard_provider($module);
 
-        $this->new_model = new JwtModel($this->provider);
+        $this->new_jwt_model = new JwtModel($this->provider);
         $this->new_token = new Token($this->guard);
+
+        $this->redis_key_user = $this->redis_user_prefix.$this->guard['provider'].'_';
     }
 
+    /**
+     * 设置guard和provider
+     *
+     * @param $module
+     *
+     * @throws \Exception
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     private function set_guard_provider($module)
     {
         /*设置guard和provider*/
@@ -65,11 +77,6 @@ class JWTAuth extends JWT
         $this->provider = $provider;
     }
 
-    private function get_user_id()
-    {
-        return $this->user['id'];
-    }
-
     /**
      * 设置token
      *
@@ -77,14 +84,9 @@ class JWTAuth extends JWT
      */
     private function set_token()
     {
-        $token       = $this->new_token->create_token($this->get_user_id());
+        $token       = $this->new_token->create_token($this->user['id']);
         $this->token = $token;
     }
-
-    /*    private function get_token(){
-            $token = is_null($this->token) ? $this->token():$this->token;
-            return $token;
-        }*/
 
     /**
      * 验证凭证
@@ -105,7 +107,7 @@ class JWTAuth extends JWT
         /* 查询用户并验证 */
         $s_pass      = $login_data[$password_key];
         $arr_wherein = yoo_array_remove($login_data, [$password_key]);
-        $user        = $this->new_model->get_one($arr_wherein);
+        $user        = $this->new_jwt_model->get_one($arr_wherein);
         if (is_null($user)) {
             return false;
         }
@@ -119,11 +121,61 @@ class JWTAuth extends JWT
         //设置token
         $this->user = $user;
         $this->set_token();
+        $this->redis_set_user($user['id']);
         return true;
     }
 
+    /**
+     * redis存储用户
+     *
+     * @param $n_user_id
+     *
+     * @return |null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    private function redis_set_user($n_user_id){
+        $redis_key = $this->redis_key_user.$n_user_id;
+        $n_redis_db = $this->redis_db;
+        $arr_user = $this->new_jwt_model->find($n_user_id);
+        $n_expiretime = $this->get_user_expire();
+        predis_str_set($redis_key,$arr_user,$n_expiretime,$n_redis_db);
 
-    //尝试登录
+        return $arr_user;
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @return mixed|null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    private function get_user(){
+        $n_user_id = $this->user_id();
+        if($n_user_id === null){
+            return null;
+        }
+
+        $redis_key = $this->redis_key_user.$n_user_id;
+        $n_redis_db = $this->redis_db;
+        $arr_user = predis_str_get($redis_key,$n_redis_db);
+        if(is_null($arr_user)){
+            $arr_user = $this->new_jwt_model->find($n_user_id);
+            $n_expiretime = $this->get_user_expire();
+            predis_str_set($redis_key,$arr_user,$n_expiretime,$n_redis_db);
+        }
+
+        return $arr_user;
+    }
+
+
+    /**
+     * 尝试登录
+     *
+     * @param array $login_data
+     *
+     * @return bool
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     public function attempt(array $login_data)
     {
         if ($this->attempt_login($login_data) !== true) {
@@ -131,6 +183,21 @@ class JWTAuth extends JWT
         }
 
         return $this->token;
+    }
+
+    /**
+     * 刷新token
+     *
+     * @return mixed
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function refresh_token(){
+        $n_user_id = $this->user_id();
+        $this->user['id'] = $n_user_id;
+        $this->set_token();
+        $this->redis_set_user($n_user_id);
+        return $this->token;
+
     }
 
     /**
@@ -144,6 +211,12 @@ class JWTAuth extends JWT
         return $result;
     }
 
+    /**
+     * 获取用户id
+     *
+     * @return int|null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     public function user_id(){
         if($this->check() !== true){
             return null;
@@ -152,36 +225,14 @@ class JWTAuth extends JWT
         return $n_userid;
     }
 
+    /**
+     * 获取用户信息
+     *
+     * @return mixed|null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     public function user(){
-        $n_user_id = $this->user_id();
-        if($n_user_id === null){
-            return null;
-        }
-
-        $redis_key = $this->redis_user_key.$this->guard['provider'].'_'.$n_user_id;
-        $n_redis_db = $this->redis_db;
-        $arr_user = predis_str_get($redis_key,$n_redis_db);
-        if(is_null($arr_user)){
-            $provider_driver = $this->provider['driver'];
-            //        $this->provider_driver = $provider_driver;
-
-            switch ($provider_driver) {
-                case 'eloquent':
-                    $arr_user = $this->model->find($n_user_id);
-                    if(is_null($arr_user)){
-                        return null;
-                    }
-                    $arr_user = $arr_user->toarray();
-                    break;
-                default:
-
-            }
-
-            $n_expiretime = $this->get_user_expire();
-            predis_str_set($redis_key,$arr_user,$n_expiretime,$n_redis_db);
-
-        }
-
+        $arr_user = $this->get_user();
         return $arr_user;
     }
 

@@ -15,18 +15,46 @@ class Token extends JWT
     private $new_sign;
     private $guard;
     private $token;
-//    private $provider;
+    private $provider;
+    private $provider_signin_mode;
 
     public function __construct($guard)
     {
         parent::__construct();
-        $this->new_payload = new Payload();
         $this->new_sign = new Sign();
         $this->guard = $guard;
-
-//        $this->provider = $this->config['providers'][$this->guard['provider']];
+        $this->new_payload = new Payload($guard);
+        $this->provider = $this->config['providers'][$guard['provider']];
         $this->token = $this->token();
-        $this->redis_key_token = $this->redis_token_key.$this->guard['provider'].'_';
+        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
+        $this->provider_signin_mode = $this->provider['signin_mode'];
+
+    }
+
+    /**
+     * 获取token
+     *
+     * @return array|mixed|string|null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    private function token(){
+        $guard_driver = $this->guard['driver'];
+        $token_key = $this->config['token_key'];
+        if($guard_driver == 'session'){
+            session_start();
+            $token = $_SESSION[$token_key];
+        }
+        else{
+            $token = \Illuminate\Support\Facades\Request::header($token_key);  
+        }
+     
+        return $token;
+    }
+
+    private function provider_signin_mode()
+    {
+        $provider_signin_mode = is_null($this->provider_signin_mode) ? $this->signin_mode: $this->provider_signin_mode;
+        return $provider_signin_mode;
     }
 
     private function arr_token(){
@@ -84,8 +112,6 @@ class Token extends JWT
         $redis_key = $this->redis_key_token.$n_userid;
         $n_db = $this->redis_db;
         predis_str_set($redis_key,$arr_jwt_token,$n_lifetime,$n_db);
-        
-        //TODO 设置用户信息
     }
 
     private function get_token(){
@@ -113,6 +139,13 @@ class Token extends JWT
         $token     = $payload . '.' . $signature;
         $this->token = $token;
 
+        $guard_driver = $this->guard['driver'];
+        if($guard_driver == 'session'){
+            session_start();
+            $token_key = $this->config['token_key'];
+            $_SESSION[$token_key] = $token;
+        }
+
         //redis存放 token
         $this->redis_set_token();
         return $token;
@@ -120,7 +153,6 @@ class Token extends JWT
     
     public function check_token($guard_driver = ''){
         $token = $this->token;
-
         $arr_token = $this->arr_token();
 
         //签名验证 token是否合法
@@ -145,8 +177,8 @@ class Token extends JWT
         $s_user_token = $arr_user_token['access_token'];
 
         //登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
-        $jwt_model = $this->jwt_model;
-        if($jwt_model == 'se' && ($token !== $s_user_token)){
+        $signin_mode = $this->provider_signin_mode();
+        if($signin_mode == 'se' && ($token !== $s_user_token)){
             return false;
         }
 

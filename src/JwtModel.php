@@ -10,10 +10,13 @@ namespace HashyooJWTAuth;
 
 class JwtModel
 {
-    private $provider;
-    private $provider_driver;
-    private $password_key;
-    private $model;
+    private $provider;//当前使用的provider
+    
+    private $provider_driver;//当前使用的provider驱动
+    
+    private $password_key;//密码字段
+    
+    private $model;//数据model
 
     public function __construct($provider)
     {
@@ -52,7 +55,15 @@ class JwtModel
 
         return $model;
     }
-    
+
+    /**
+     * 根据where条件查询一条数据
+     *
+     * @param array $arr_where
+     *
+     * @return null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     public function get_one($arr_where = []){
         $provider_driver = $this->provider_driver;
         $provider_model = $this->model;
@@ -75,7 +86,15 @@ class JwtModel
         }
         return $user;
     }
-    
+
+    /**
+     * 根据数据id查询一条数据
+     *
+     * @param int $n_id
+     *
+     * @return null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     public function find($n_id = 0){
         $provider_driver = $this->provider_driver;
         $provider_model = $this->model;
