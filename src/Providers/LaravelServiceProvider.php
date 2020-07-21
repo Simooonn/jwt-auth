@@ -18,7 +18,6 @@ class LaravelServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        dd(9);
         $path = realpath(__DIR__.'/../../config/hashyoo-jwt.php');
         $this->publishes([$path => config_path('hashyoo-jwt.php')], 'config');
 //        $this->mergeConfigFrom($path, 'hashyoo-jwt');
