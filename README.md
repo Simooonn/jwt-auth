@@ -37,3 +37,7 @@ php artisan vendor:publish --provider="HashyooJWTAuth\Providers\LaravelServicePr
 
 > web session形式：在guards里driver设置成session
 
+
+
+Hash::check要找个通用的方法代替
+获取header参数找个通用的方法代替
