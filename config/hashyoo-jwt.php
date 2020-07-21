@@ -9,7 +9,8 @@ use App\User;
 
 return [
 
-  'token_key' => 'hha-token',//header头部token key
+  'token_key' => 'jwt-token',//header头部token key
+
   'signin_mode' => 'se',//登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
 
   'secret' => env('JWT_SECRET'),//算法私钥
@@ -28,7 +29,6 @@ return [
 
   'defaults' => [
     'guard' => 'web',
-    //      'passwords' => 'users',
   ],
 
   'guards' => [
@@ -36,7 +36,7 @@ return [
       //管理后台
       'admin' => [
         'driver' => 'session',
-        //          'driver' => 'redis',
+        //        'driver' => 'redis',
         'provider' => 'users',
       ],
   ],

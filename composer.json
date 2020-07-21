@@ -1,13 +1,13 @@
 {
     "name": "hashyoo/jwt-auth",
-    "description": "Json web token，接口登录，支持单端、单点和多设备登录，需要redis支持",
+    "description": "Json web token，登录认证（接口登录和web session登录），支持单社保和多设备登录，需要redis支持。目前仅适用于laravel",
     "type": "library",
-    "keywords": ["jwt", "php", "laravel", "接口登录", "单设备登录", "多设备登录", "单点登录"],
+    "keywords": ["jwt", "php", "laravel", "登录认证", "接口登录", "单设备登录", "多设备登录", "单点登录"],
     "require": {
-        "php": ">=5.6.0"
+        "php": ">=5.6.0",
+        "hashyoo/predis-function": "~0.0"
     },
     "require-dev": {
-        "hashyoo/predis-function": "~0.0"
     },
     "license": "MIT",
     "authors": [
@@ -19,9 +19,16 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "HashyooJWTAuth\\": "src"
+            "HashyooJWTAuth\\": "src/"
         },
         "classmap": [
         ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HashyooJWTAuth\\Providers\\LaravelServiceProvider"
+            ]
+        }
     }
 }
