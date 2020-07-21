@@ -8,7 +8,6 @@
 
 namespace HashyooJWTAuth;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class JWTAuth extends JWT

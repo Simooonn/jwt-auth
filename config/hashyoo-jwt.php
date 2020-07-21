@@ -8,6 +8,19 @@
 use App\User;
 
 return [
+  'demo'=>[
+      /*列出列表，仅供下面配置选择*/
+      'guards_drivers'=>[
+        'session',//web session模式
+        'api',//接口模式
+      ],
+
+      /*列出列表，仅供下面配置选择*/
+      'providers_drivers'=>[
+        'eloquent',//laravel ORM
+      ],
+
+  ],
 
   'token_key' => 'jwt-token',//header头部token key
 
@@ -31,19 +44,21 @@ return [
     'guard' => 'web',
   ],
 
+
   'guards' => [
 
       //管理后台
       'admin' => [
-        'driver' => 'session',
-        //        'driver' => 'redis',
+        'driver' => 'session',//只能从上方 demo=>guards_drivers 里选择
+//        'driver' => 'api',
         'provider' => 'users',
       ],
   ],
 
+
   'providers' => [
     'users' => [
-      'driver' => 'eloquent',
+      'driver' => 'eloquent',//只能从上方 demo=>providers_drivers 里选择
       'model' => App\User::class,
       //      'ttl'=>2,//token有效时间 单位小时 设置后优先使用此值
       //      'signin_mode' => 'me',//登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment) 设置后优先使用此值
