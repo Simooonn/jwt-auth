@@ -17,6 +17,7 @@ class Token extends JWT
     private $token;
     private $provider;
     private $provider_signin_mode;
+    private $redis_key_token;
 
     public function __construct($guard)
     {
@@ -57,6 +58,13 @@ class Token extends JWT
         return $provider_signin_mode;
     }
 
+    /**
+     *
+     *
+     * @return array
+     * @throws \Exception
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
     private function arr_token(){
         $token = $this->token;
         if(empty($token)){
@@ -122,7 +130,10 @@ class Token extends JWT
     /**
      * 生成token
      *
+     * @param int $n_user_id
+     *
      * @return string
+     * @throws \Exception
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
     public function create_token($n_user_id = 0)
@@ -151,8 +162,11 @@ class Token extends JWT
         return $token;
     }
     
-    public function check_token($guard_driver = ''){
+    public function check_token(){
         $token = $this->token;
+        if(is_null($token)){
+            return false;
+        }
         $arr_token = $this->arr_token();
 
         //签名验证 token是否合法
@@ -184,6 +198,8 @@ class Token extends JWT
 
         return true;
     }
+
+
 
 
 

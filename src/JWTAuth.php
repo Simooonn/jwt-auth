@@ -32,6 +32,7 @@ class JWTAuth extends JWT
     private $new_token;//Token实例化
 
     private $redis_key_user;//用户redis前缀
+    private $redis_key_token;//token redis前缀
 
     public function __construct($module = '')
     {
@@ -45,6 +46,8 @@ class JWTAuth extends JWT
         $this->new_token = new Token($this->guard);
 
         $this->redis_key_user = $this->redis_user_prefix.$this->guard['provider'].'_';
+        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
+
     }
 
     /**
@@ -235,5 +238,27 @@ class JWTAuth extends JWT
         return $arr_user;
     }
 
+    /**
+     * 用户退出登录
+     *
+     * @return bool
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function loginout(){
+        $n_userid = $this->user_id();
+        if($n_userid === null){
+            return true;
+        }
+
+        $redis_key = $this->redis_key_token.$n_userid;
+        $n_db = $this->redis_db;
+        $result = predis_str_del($redis_key,$n_db);
+        if($result){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 
 }
