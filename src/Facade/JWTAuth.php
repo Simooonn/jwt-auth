@@ -9,6 +9,6 @@ class JWTAuth extends Facade
 
     protected static function getFacadeAccessor()
     {
-        return 'jwtauth';
+        return 'JWTAuth';
     }
 }
