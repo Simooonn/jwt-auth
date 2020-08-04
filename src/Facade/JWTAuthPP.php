@@ -9,6 +9,6 @@ class JWTAuthPP extends Facade
 
     protected static function getFacadeAccessor()
     {
-        return 'JWTAuthWW';
+        return 'JWTAuth';
     }
 }
