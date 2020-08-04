@@ -172,10 +172,6 @@ class JWTAuth extends JWT
         return $arr_user;
     }
 
-    public function guard($module = ''){
-        $this->init($module);
-    }
-
     /**
      * 尝试登录
      *

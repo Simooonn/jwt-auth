@@ -24,16 +24,5 @@ class LaravelServiceProvider extends ServiceProvider
 //        $this->mergeConfigFrom($path, 'hashyoo-jwt');
     }
 
-    /**
-     * Register services.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        // 在容器中注册
-        $this->app->singleton('JWTAuth', function () {
-            return new JWTAuth('');
-        });
-    }
+
 }
