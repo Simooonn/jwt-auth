@@ -37,6 +37,10 @@ class JWTAuth extends JWT
     public function __construct($module = '')
     {
         parent::__construct();
+        $this->init($module);
+    }
+
+    private function init($module){
         $this->defaults      = $this->config['defaults'];
         $this->guard_list    = $this->config['guards'];
         $this->provider_list = $this->config['providers'];
@@ -47,18 +51,17 @@ class JWTAuth extends JWT
 
         $this->redis_key_user = $this->redis_user_prefix.$this->guard['provider'].'_';
         $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
-
     }
 
     /**
      * 设置guard和provider
      *
-     * @param $module
+     * @param string $module
      *
      * @throws \Exception
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    private function set_guard_provider($module)
+    private function set_guard_provider($module = '')
     {
         /*设置guard和provider*/
         $module   = $module === '' ? $this->defaults['guard'] : $module;
@@ -169,6 +172,9 @@ class JWTAuth extends JWT
         return $arr_user;
     }
 
+    public function guard($module = ''){
+        $this->init($module);
+    }
 
     /**
      * 尝试登录

@@ -28,7 +28,10 @@
         "laravel": {
             "providers": [
                 "HashyooJWTAuth\\Providers\\LaravelServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "JWTAuth": "HashyooJWTAuth\\Facade\\JWTAuthPP"
+            }
         }
     }
 }

@@ -192,6 +192,29 @@ class Token extends JWT
 
         //登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
         $signin_mode = $this->provider_signin_mode();
+/*        switch ($signin_mode)
+        {
+            case 'se':
+                if($token === $s_user_token){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+                break;
+
+            case 'me':
+                //多设备登录时，一个设备退出登录时出现问题，需要给token存redis，并设置有效期
+//                if($token === $s_user_token){
+//                    return true;
+//                }
+//                else{
+//                    return false;
+//                }
+                break;
+            default:
+                return false;
+        }*/
         if($signin_mode == 'se' && ($token !== $s_user_token)){
             return false;
         }
