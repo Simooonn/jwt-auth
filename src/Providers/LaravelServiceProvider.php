@@ -32,7 +32,7 @@ class LaravelServiceProvider extends ServiceProvider
     public function register()
     {
         // 在容器中注册
-        $this->app->singleton('JWTAUTHMM', function () {
+        $this->app->singleton('JWTAuthWW', function () {
             return new JWTAuth('');
         });
     }
