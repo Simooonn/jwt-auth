@@ -28,8 +28,8 @@ class JWTAuth extends JWT
 //    }
 
     public function guard($module = ''){
-        dd($this);
-        return $this->guard($module);
+        $this->jwt_guard($module);
+        return $this;
         //        dd($this);
     }
 
@@ -43,7 +43,10 @@ class JWTAuth extends JWT
      */
     public function attempt($login_data = [])
     {
-        dd($this);
+        $result = $this->jwt_attempt($login_data);
+
+
+        dd($result);
     }
 
     /**

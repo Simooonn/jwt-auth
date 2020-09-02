@@ -11,25 +11,26 @@ namespace HashyooJWTAuth\JWT;
 class Base
 {
 
-    private $config;
+    protected $config;
 
-    protected $defaults_guard;
-    protected $guards;
-    protected $providers;
+//    protected $defaults_guard;
+//    protected $guards;
+//    protected $providers;
 
-    
-    
-//    protected $guard_list;
+
+
+//    protected $algo;
+//    protected $secret;
 //
 //    protected $signin_mode;//登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
 //
-//    protected $redis_db;//redis数据存放库
-//
-//    protected $redis_token_prefix;//redis token-key token存储redis前缀
-//
-//    protected $redis_user_prefix;//redis user-key 用户存储redis前缀
-//
-//    protected $redis_user_expiretime;//用户数据保存有效期 单位小时
+    protected $redis_db;//redis数据存放库
+
+    protected $redis_token_prefix;//redis token-key token存储redis前缀
+
+    protected $redis_user_prefix;//redis user-key 用户存储redis前缀
+
+    protected $redis_user_expiretime;//用户数据保存有效期 单位小时
 
     protected function __construct()
     {
@@ -37,14 +38,14 @@ class Base
         $config = config('hashyoo-jwt');
 
         $this->config          = $config;
-        $this->defaults_guard       = $config['defaults']['guard'];
-        $this->guards       = $config['guards'];
-        $this->providers       = $config['providers'];
+//        $this->defaults_guard       = $config['defaults']['guard'];
+//        $this->guards       = $config['guards'];
+//        $this->providers       = $config['providers'];
 
-        if (is_null($this->defaults_guard)) {
-//            return ['aa'];
-            throw new \Exception('没有设置默认的guard');
-        }
+//        if (is_null($this->defaults_guard)) {
+////            return ['aa'];
+//            throw new \Exception('没有设置默认的guard');
+//        }
 //        dd($this);
 //        $this->token_key       = $config['token_key'];
 //        $this->signin_mode     = $config['signin_mode'];

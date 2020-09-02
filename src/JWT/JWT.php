@@ -13,11 +13,11 @@ use Illuminate\Support\Facades\Hash;
 class JWT extends Base
 {
 
-//    private $defaults;//默认guard
-//
-//    private $guard_list;//guard列表
-//
-//    private $provider_list;//provider列表
+    private $defaults_guard;//
+
+    private $guards;//
+
+    private $providers;//
 //
 //    private $guard;//当前使用的guard
 
@@ -38,46 +38,81 @@ class JWT extends Base
     private $password_key;//密码字段名称
     private $guard;//
     private $provider;//
+    private $new_jwt_model;//
+    private $new_token;//
+    private $user;//
+    private $token;//
 
-    public function __construct($module = '')
+    public function __construct()
     {
-//        parent::__construct();
-//
-//        /*设置guard和provider*/
-//        $module   =  empty($module) ? $this->defaults_guard : $module;
-//        $guard    = $this->guards[$module];
-//        $provider = $this->providers[$guard['provider']];
-//
-//        if (is_null($guard)) {
-//            throw new \Exception('没有找到对应的guard');
-//        }
-//        if (is_null($provider)) {
-//            throw new \Exception('没有找到对应的provider');
-//        }
-//
-//        $this->guard    = $guard;
-//        $this->provider = $provider;
-//        $this->password_key = !empty($this->provider['pass_key']) ? $this->provider['pass_key'] : 'password';
-////        dd($this->provider);
-//
-//
-//
-//
-////
-////        /* Model */
-//        $this->new_jwt_model = new Model($this->provider);
+        parent::__construct();
 
+        $config = $this->config;
+        $this->defaults_guard       = $config['defaults']['guard'];
+        $this->guards       = $config['guards'];
+        $this->providers       = $config['providers'];
 
+        if (is_null($this->defaults_guard)) {
+            throw new \Exception('没有设置默认的guard');
+        }
 
-//        $this->new_token     = new Token($this->guard);
+        /*设置guard和provider*/
+        $module   =  empty($module) ? $this->defaults_guard : $module;
+        $guard    = $this->guards[$module];
+        $provider = $this->providers[$guard['provider']];
+        if (is_null($guard)) {
+            throw new \Exception('没有找到对应的guard');
+        }
+        if (is_null($provider)) {
+            throw new \Exception('没有找到对应的provider');
+        }
+
+        $this->guard    = $guard;
+        $this->provider = $provider;
+        $this->provider['pass_key'] = !empty($this->provider['pass_key']) ? $this->provider['pass_key'] : 'password';
+        $this->password_key = $this->provider['pass_key'];
+
+        /* Model */
+        $this->new_jwt_model = new Model($this->provider);
+        $this->new_token     = new Token($guard,$provider);
 //
 //        /* redis */
 //        $this->redis_key_user  = $this->redis_user_prefix . $this->guard['provider'] . '_';
 //        $this->redis_key_token = $this->redis_token_prefix . $this->guard['provider'] . '_';
     }
 
-    public function guard(){
-        return $this;
+    /**
+     *
+     *
+     * @return $this
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function jwt_guard($module = ''){
+
+        /*设置guard和provider*/
+        $module   =  empty($module) ? $this->defaults_guard : $module;
+        $guard    = $this->guards[$module];
+        $provider = $this->providers[$guard['provider']];
+
+//        if (is_null($guard)) {
+//            throw new \Exception('没有找到对应的guard');
+//        }
+//        if (is_null($provider)) {
+//            throw new \Exception('没有找到对应的provider');
+//        }
+
+        $this->guard    = $guard;
+        $this->provider = $provider;
+        $this->provider['pass_key'] = !empty($this->provider['pass_key']) ? $this->provider['pass_key'] : 'password';
+        $this->password_key = $this->provider['pass_key'];
+//        dd($this->provider);
+
+
+
+
+        /* Model */
+        $this->new_jwt_model = new Model($this->provider);
+//        return $this;
 //        dd($this);
     }
 
@@ -87,10 +122,10 @@ class JWT extends Base
      *
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    private function set_token()
+    private function set_token($n_uid = 0)
     {
-        $token       = $this->new_token->create_token($this->user['id']);
-        $this->token = $token;
+        $this->token = $this->new_token->create_token($n_uid);
+        $this->redis_set_user($n_uid);
     }
 
 
@@ -146,7 +181,7 @@ class JWT extends Base
      * @return bool
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function attempt($login_data = [])
+    protected function jwt_attempt($login_data = [])
     {
         /* 判断登录数据有没有密码字段 */
         $password_key = $this->password_key;
@@ -157,23 +192,23 @@ class JWT extends Base
         /* 查询用户并验证 */
         $s_pass      = $login_data[$password_key];
         $arr_wherein = yoo_array_remove($login_data, [$password_key]);
-        dd($arr_wherein);
         $user        = $this->new_jwt_model->get_one($arr_wherein);
         if (is_null($user)) {
             return false;
         }
-        $s_password = $user[$password_key];
+        $n_uid = intval($user['id']);
+        if($n_uid <= 0){
+            return false;
+        }
 
         //验证密码
-        if (Hash::check($s_pass, $s_password) !== true) {
+        if (Hash::check($s_pass, $user[$password_key]) !== true) {
             return false;
         }
 
         //设置token
         $this->user = $user;
-        $this->set_token();
-        $this->redis_set_user($user['id']);
-
+        $this->set_token($n_uid);
         return $this->token;
     }
 
@@ -186,8 +221,7 @@ class JWT extends Base
     public function refresh_token()
     {
         $n_user_id        = $this->user_id();
-        $this->user['id'] = $n_user_id;
-        $this->set_token();
+        $this->set_token($n_user_id);
         $this->redis_set_user($n_user_id);
         return $this->token;
 

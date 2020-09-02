@@ -14,27 +14,28 @@ class Token extends Base
     private $new_payload;
 
     private $new_sign;
-
+//
     private $guard;
-
+//
     private $token;
-
-    private $provider;
-
-    private $provider_signin_mode;
-
-    private $redis_key_token;
-
-    public function __construct($guard)
+//
+//    private $provider;
+//
+//    private $provider_signin_mode;
+//
+//    private $redis_key_token;
+//
+    public function __construct($guard,$provider)
     {
         parent::__construct();
+//        dd($this);
         $this->new_sign             = new Sign();
         $this->guard                = $guard;
-        $this->new_payload          = new Payload($guard);
-        $this->provider             = $this->config['providers'][$guard['provider']];
-        $this->token                = $this->token();
-        $this->redis_key_token      = $this->redis_token_prefix . $this->guard['provider'] . '_';
-        $this->provider_signin_mode = $this->provider['signin_mode'];
+        $this->new_payload          = new Payload($provider);
+//        $this->provider             = $this->config['providers'][$guard['provider']];
+//        $this->token                = $this->token();
+//        $this->redis_key_token      = $this->redis_token_prefix . $this->guard['provider'] . '_';
+//        $this->provider_signin_mode = $this->provider['signin_mode'];
 
     }
 
@@ -155,10 +156,6 @@ class Token extends Base
     public function create_token($n_user_id = 0)
     {
         $n_user_id = intval($n_user_id);
-        if ($n_user_id <= 0) {
-            throw new \Exception('用户id不存在');
-        }
-
         $payload = $this->new_payload->get_payload($n_user_id);
 
         //签名signature
