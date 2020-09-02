@@ -38,7 +38,10 @@
     "laravel": {
       "providers": [
         "HashyooJWTAuth\\Providers\\JWTAuthProvider"
-      ]
+      ],
+      "aliases": {
+        "JWTAuth": "HashyooJWTAuth\\Facade\\JWTAuth"
+      }
     }
   }
 }
