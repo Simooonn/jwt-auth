@@ -37,7 +37,8 @@ class JWTAuthProvider extends ServiceProvider
         // 在容器中注册
         $this->app->singleton('JWTAuth', function () {
             $module = config('hashyoo-jwt.defaults.guard');
-            return new JWTAuth($module);
+            $model = new JWTAuth();
+            return $model->guard($module);
         });
     }
 
