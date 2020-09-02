@@ -10,20 +10,21 @@ namespace HashyooJWTAuth;
 
 class JwtModel
 {
+
     private $provider;//当前使用的provider
-    
+
     private $provider_driver;//当前使用的provider驱动
-    
+
     private $password_key;//密码字段
-    
+
     private $model;//数据model
 
     public function __construct($provider)
     {
-        $this->provider = $provider;
+        $this->provider        = $provider;
         $this->provider_driver = $provider['driver'];
-        $this->model = $this->provider_model();
-        $this->password_key = $provider['pass_key'] ? $provider['pass_key'] : 'password';
+        $this->model           = $this->provider_model();
+        $this->password_key    = $provider['pass_key'] ? $provider['pass_key'] : 'password';
     }
 
     /**
@@ -35,15 +36,16 @@ class JwtModel
      * @throws \Exception
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    private function provider_model(){
-        $provider = $this->provider;
+    private function provider_model()
+    {
+        $provider        = $this->provider;
         $provider_driver = $this->provider_driver;
         if (is_null($provider_driver)) {
             throw new \Exception('找不到provider的driver');
         }
         switch ($provider_driver) {
             case 'eloquent':
-                $provider_model        = $provider['model'];
+                $provider_model = $provider['model'];
                 if (is_null($provider_model)) {
                     throw new \Exception('找不到provider的model');
                 }
@@ -64,20 +66,21 @@ class JwtModel
      * @return null
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function get_one($arr_where = []){
+    public function get_one($arr_where = [])
+    {
         $provider_driver = $this->provider_driver;
-        $provider_model = $this->model;
+        $provider_model  = $this->model;
         switch ($provider_driver) {
             case 'eloquent':
                 //yoo_array_remove($login_data, [$password])
                 //                $s_password = $user->password;
-                $user       = $provider_model->where($arr_where)
-                                          ->first();
+                $user = $provider_model->where($arr_where)
+                                       ->first();
                 if (is_null($user)) {
                     return null;
                 }
-                $s_password = $user->password;
-                $user = $user->toarray();
+                $s_password                = $user->password;
+                $user                      = $user->toarray();
                 $user[$this->password_key] = $s_password;
                 break;
             default:
@@ -95,14 +98,15 @@ class JwtModel
      * @return null
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function find($n_id = 0){
+    public function find($n_id = 0)
+    {
         $provider_driver = $this->provider_driver;
-        $provider_model = $this->model;
+        $provider_model  = $this->model;
         switch ($provider_driver) {
             case 'eloquent':
                 //yoo_array_remove($login_data, [$password])
                 //                $s_password = $user->password;
-                $user       = $provider_model->find($n_id);
+                $user = $provider_model->find($n_id);
                 if (is_null($user)) {
                     return null;
                 }

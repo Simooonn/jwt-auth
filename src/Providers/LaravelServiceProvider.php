@@ -10,18 +10,21 @@
  */
 
 namespace HashyooJWTAuth\Providers;
+
 use HashyooJWTAuth\JWTAuth;
 use Illuminate\Support\ServiceProvider;
+
 class LaravelServiceProvider extends ServiceProvider
 {
+
     /**
      * {@inheritdoc}
      */
     public function boot()
     {
-        $path = realpath(__DIR__.'/../../config/config.php');
+        $path = realpath(__DIR__ . '/../../config/config.php');
         $this->publishes([$path => config_path('hashyoo-jwt.php')], 'config');
-//        $this->mergeConfigFrom($path, 'hashyoo-jwt');
+        //        $this->mergeConfigFrom($path, 'hashyoo-jwt');
     }
 
 

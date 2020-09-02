@@ -32,6 +32,7 @@ class JWTAuth extends JWT
     private $new_token;//Token实例化
 
     private $redis_key_user;//用户redis前缀
+
     private $redis_key_token;//token redis前缀
 
     public function __construct($module = '')
@@ -40,17 +41,18 @@ class JWTAuth extends JWT
         $this->init($module);
     }
 
-    private function init($module){
+    private function init($module)
+    {
         $this->defaults      = $this->config['defaults'];
         $this->guard_list    = $this->config['guards'];
         $this->provider_list = $this->config['providers'];
         $this->set_guard_provider($module);
 
         $this->new_jwt_model = new JwtModel($this->provider);
-        $this->new_token = new Token($this->guard);
+        $this->new_token     = new Token($this->guard);
 
-        $this->redis_key_user = $this->redis_user_prefix.$this->guard['provider'].'_';
-        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
+        $this->redis_key_user  = $this->redis_user_prefix . $this->guard['provider'] . '_';
+        $this->redis_key_token = $this->redis_token_prefix . $this->guard['provider'] . '_';
     }
 
     /**
@@ -138,12 +140,13 @@ class JWTAuth extends JWT
      * @return |null
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    private function redis_set_user($n_user_id){
-        $redis_key = $this->redis_key_user.$n_user_id;
-        $n_redis_db = $this->redis_db;
-        $arr_user = $this->new_jwt_model->find($n_user_id);
+    private function redis_set_user($n_user_id)
+    {
+        $redis_key    = $this->redis_key_user . $n_user_id;
+        $n_redis_db   = $this->redis_db;
+        $arr_user     = $this->new_jwt_model->find($n_user_id);
         $n_expiretime = $this->get_user_expire();
-        predis_str_set($redis_key,$arr_user,$n_expiretime,$n_redis_db);
+        predis_str_set($redis_key, $arr_user, $n_expiretime, $n_redis_db);
 
         return $arr_user;
     }
@@ -154,19 +157,20 @@ class JWTAuth extends JWT
      * @return mixed|null
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    private function get_user(){
+    private function get_user()
+    {
         $n_user_id = $this->user_id();
-        if($n_user_id === null){
+        if ($n_user_id === null) {
             return null;
         }
 
-        $redis_key = $this->redis_key_user.$n_user_id;
+        $redis_key  = $this->redis_key_user . $n_user_id;
         $n_redis_db = $this->redis_db;
-        $arr_user = predis_str_get($redis_key,$n_redis_db);
-        if(is_null($arr_user)){
-            $arr_user = $this->new_jwt_model->find($n_user_id);
+        $arr_user   = predis_str_get($redis_key, $n_redis_db);
+        if (is_null($arr_user)) {
+            $arr_user     = $this->new_jwt_model->find($n_user_id);
             $n_expiretime = $this->get_user_expire();
-            predis_str_set($redis_key,$arr_user,$n_expiretime,$n_redis_db);
+            predis_str_set($redis_key, $arr_user, $n_expiretime, $n_redis_db);
         }
 
         return $arr_user;
@@ -195,8 +199,9 @@ class JWTAuth extends JWT
      * @return mixed
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function refresh_token(){
-        $n_user_id = $this->user_id();
+    public function refresh_token()
+    {
+        $n_user_id        = $this->user_id();
         $this->user['id'] = $n_user_id;
         $this->set_token();
         $this->redis_set_user($n_user_id);
@@ -210,7 +215,8 @@ class JWTAuth extends JWT
      * @return bool
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function check(){
+    public function check()
+    {
         $result = $this->new_token->check_token();
         return $result;
     }
@@ -221,8 +227,9 @@ class JWTAuth extends JWT
      * @return int|null
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function user_id(){
-        if($this->check() !== true){
+    public function user_id()
+    {
+        if ($this->check() !== true) {
             return null;
         }
         $n_userid = $this->new_token->get_user_id();
@@ -235,7 +242,8 @@ class JWTAuth extends JWT
      * @return mixed|null
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function user(){
+    public function user()
+    {
         $arr_user = $this->get_user();
         return $arr_user;
     }
@@ -246,19 +254,20 @@ class JWTAuth extends JWT
      * @return bool
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function loginout(){
+    public function loginout()
+    {
         $n_userid = $this->user_id();
-        if($n_userid === null){
+        if ($n_userid === null) {
             return true;
         }
 
-        $redis_key = $this->redis_key_token.$n_userid;
-        $n_db = $this->redis_db;
-        $result = predis_str_del($redis_key,$n_db);
-        if($result){
+        $redis_key = $this->redis_key_token . $n_userid;
+        $n_db      = $this->redis_db;
+        $result    = predis_str_del($redis_key, $n_db);
+        if ($result) {
             return true;
         }
-        else{
+        else {
             return false;
         }
     }

@@ -15,18 +15,18 @@ class Payload extends JWT
 {
 
     private $guard;//当前使用的guard
-    
+
     private $provider;//当前使用的provider
-    
+
     private $jwt_ttl;//token有效期
 
     public function __construct($guard)
     {
         parent::__construct();
-        $this->guard = $guard;
+        $this->guard    = $guard;
         $this->provider = $this->config['providers'][$guard['provider']];
-        $this->jwt_ttl = is_null($this->provider['ttl']) ? null :$this->provider['ttl'] * 60 *60;
-//        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
+        $this->jwt_ttl  = is_null($this->provider['ttl']) ? null : $this->provider['ttl'] * 60 * 60;
+        //        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
     }
 
     /**
@@ -65,7 +65,7 @@ class Payload extends JWT
      */
     private function jwt_ttl()
     {
-        $n_ttl = is_null($this->jwt_ttl) ? $this->get_ttl(): $this->jwt_ttl;
+        $n_ttl = is_null($this->jwt_ttl) ? $this->get_ttl() : $this->jwt_ttl;
         return $n_ttl;
     }
 
@@ -123,7 +123,8 @@ class Payload extends JWT
      * @return string
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function get_payload($n_user_id = 0){
+    public function get_payload($n_user_id = 0)
+    {
         //playload-header
         $payload_header = $this->payload_header();
 
@@ -131,7 +132,7 @@ class Payload extends JWT
         $payload_claim = $this->payload_claim($n_user_id);
 
         $payload = $payload_header . '.' . $payload_claim;
-        
+
         return $payload;
     }
 

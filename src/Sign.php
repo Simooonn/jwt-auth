@@ -10,6 +10,7 @@ namespace HashyooJWTAuth;
 
 class Sign extends JWT
 {
+
     public function __construct()
     {
         parent::__construct();
