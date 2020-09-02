@@ -6,9 +6,9 @@
  * Time: 18:00
  */
 
-namespace HashyooJWTAuth;
+namespace HashyooJWTAuth\JWT;
 
-class JwtModel
+class Model
 {
 
     private $provider;//当前使用的provider

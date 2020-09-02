@@ -6,9 +6,9 @@
  * Time: 18:00
  */
 
-namespace HashyooJWTAuth;
+namespace HashyooJWTAuth\JWT;
 
-class Token extends JWT
+class Token extends Base
 {
 
     private $new_payload;

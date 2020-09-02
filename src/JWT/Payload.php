@@ -6,12 +6,12 @@
  * Time: 18:00
  */
 
-namespace HashyooJWTAuth;
+namespace HashyooJWTAuth\JWT;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Request;
 
-class Payload extends JWT
+class Payload extends Base
 {
 
     private $guard;//当前使用的guard

@@ -6,9 +6,9 @@
  * Time: 18:00
  */
 
-namespace HashyooJWTAuth;
+namespace HashyooJWTAuth\JWT;
 
-class Sign extends JWT
+class Sign extends Base
 {
 
     public function __construct()

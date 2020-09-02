@@ -6,27 +6,45 @@
  * Time: 18:00
  */
 
-namespace HashyooJWTAuth;
+namespace HashyooJWTAuth\JWT;
 
-class JWT
+class Base
 {
 
-    protected $config;
+    private $config;
+
+    protected $guard_list;
 
     protected $signin_mode;//登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
 
     protected $redis_db;//redis数据存放库
 
-    protected $redis_token_prefix;//redis token-key
+    protected $redis_token_prefix;//redis token-key token存储redis前缀
 
-    protected $redis_user_prefix;//redis user-key
+    protected $redis_user_prefix;//redis user-key 用户存储redis前缀
 
     protected $redis_user_expiretime;//用户数据保存有效期 单位小时
 
     protected function __construct()
     {
-        $this->config                = config('hashyoo-jwt');
-        $this->signin_mode           = empty($this->config['signin_mode']) ? 'se' : $this->config['signin_mode'];
+        /* 配置 */
+        $config = config('hashyoo-jwt');
+
+        $this->config          = $config;
+//        $this->token_key       = $config['token_key'];
+//        $this->signin_mode     = $config['signin_mode'];
+//        $this->secret          = $config['secret'];
+//        $this->ttl             = $config['ttl'];
+//        $this->algo            = $config['algo'];
+//        $this->required_claims = $config['required_claims'];
+//        $this->defaults        = $config['defaults'];
+//        $this->guards          = $config['guards'];
+//        $this->providers       = $config['providers'];
+//
+//        $this->signin_mode   = empty($config['signin_mode']) ? 'se' : $config['signin_mode'];
+//        $this->guard_list    = $config['guards'];
+//        $this->provider_list = $config['providers'];
+
         $this->redis_db              = 15;
         $this->redis_token_prefix    = 'jwt_token_';
         $this->redis_user_prefix     = 'user_';

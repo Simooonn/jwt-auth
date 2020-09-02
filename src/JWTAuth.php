@@ -8,9 +8,10 @@
 
 namespace HashyooJWTAuth;
 
+use HashyooJWTAuth\JWT\Base;
 use Illuminate\Support\Facades\Hash;
 
-class JWTAuth extends JWT
+class JWTAuth extends Base
 {
 
     private $defaults;//默认guard
@@ -38,51 +39,39 @@ class JWTAuth extends JWT
     public function __construct($module = '')
     {
         parent::__construct();
-        $this->init($module);
+
+
+//        /*设置guard和provider*/
+//        $module   = $module === '' ? $this->defaults['guard'] : $module;
+//        $guard    = $this->guard_list[$module];
+//        $provider = $this->provider_list[$guard['provider']];
+//
+//        if (is_null($module)) {
+//            throw new \Exception('没有设置默认的guard');
+//        }
+//        if (is_null($guard)) {
+//            throw new \Exception('没有找到对应的guard');
+//        }
+//        if (is_null($provider)) {
+//            throw new \Exception('没有找到对应的provider');
+//        }
+//
+//        $this->guard    = $guard;
+//        $this->provider = $provider;
+//
+//        /* Model */
+//        $this->new_jwt_model = new Model($this->provider);
+//        $this->new_token     = new Token($this->guard);
+//
+//        /* redis */
+//        $this->redis_key_user  = $this->redis_user_prefix . $this->guard['provider'] . '_';
+//        $this->redis_key_token = $this->redis_token_prefix . $this->guard['provider'] . '_';
     }
 
-    private function init($module)
-    {
-        $this->defaults      = $this->config['defaults'];
-        $this->guard_list    = $this->config['guards'];
-        $this->provider_list = $this->config['providers'];
-        $this->set_guard_provider($module);
+    public function guard(){
 
-        $this->new_jwt_model = new JwtModel($this->provider);
-        $this->new_token     = new Token($this->guard);
-
-        $this->redis_key_user  = $this->redis_user_prefix . $this->guard['provider'] . '_';
-        $this->redis_key_token = $this->redis_token_prefix . $this->guard['provider'] . '_';
     }
 
-    /**
-     * 设置guard和provider
-     *
-     * @param string $module
-     *
-     * @throws \Exception
-     * @author wumengmeng <wu_mengmeng@foxmail.com>
-     */
-    private function set_guard_provider($module = '')
-    {
-        /*设置guard和provider*/
-        $module   = $module === '' ? $this->defaults['guard'] : $module;
-        $guard    = $this->guard_list[$module];
-        $provider = $this->provider_list[$guard['provider']];
-
-        if (is_null($module)) {
-            throw new \Exception('没有设置默认的guard');
-        }
-        if (is_null($guard)) {
-            throw new \Exception('没有找到对应的guard');
-        }
-        if (is_null($provider)) {
-            throw new \Exception('没有找到对应的provider');
-        }
-
-        $this->guard    = $guard;
-        $this->provider = $provider;
-    }
 
     /**
      * 设置token
@@ -137,7 +126,7 @@ class JWTAuth extends JWT
      *
      * @param $n_user_id
      *
-     * @return |null
+     * @return mixed
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
     private function redis_set_user($n_user_id)
@@ -184,7 +173,7 @@ class JWTAuth extends JWT
      * @return bool
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function attempt(array $login_data)
+    public function attempt($login_data = [])
     {
         if ($this->attempt_login($login_data) !== true) {
             return false;
