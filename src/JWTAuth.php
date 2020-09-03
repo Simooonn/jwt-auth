@@ -8,27 +8,21 @@
 
 namespace HashyooJWTAuth;
 
-use HashyooJWTAuth\JWT\Base;
+use HashyooJWTAuth\JWT\Guard;
 use HashyooJWTAuth\JWT\JWT;
-use HashyooJWTAuth\JWT\Model;
-use Illuminate\Support\Facades\Hash;
 
-class JWTAuth extends JWT
+class JWTAuth
 {
 
-//    public function __construct($module = '')
-//    {
-//        dd($this);
-//
-//        parent::__construct();
-//
-//
-//        dd($this);
-//
-//    }
+    private $model_jwt;
+
+    public function __construct()
+    {
+        $this->model_jwt = new JWT();
+    }
 
     public function guard($module = ''){
-        $this->jwt_guard($module);
+        $this->model_jwt = new JWT($module);
         return $this;
         //        dd($this);
     }
@@ -43,7 +37,7 @@ class JWTAuth extends JWT
      */
     public function attempt($login_data = [])
     {
-        $result = $this->jwt_attempt($login_data);
+        $result = $this->model_jwt->attempt($login_data);
 
 
         dd($result);

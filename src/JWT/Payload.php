@@ -14,18 +14,19 @@ use Illuminate\Support\Facades\Request;
 class Payload extends Base
 {
 
-//    private $guard;//当前使用的guard
+////    private $guard;//当前使用的guard
+////
+////    private $provider;//当前使用的provider
 //
-//    private $provider;//当前使用的provider
-
-    private $jwt_ttl;//token有效期
-
+    private $jwt_ttl_time;//token有效期
+//
     public function __construct($provider)
     {
         parent::__construct();
-        $this->jwt_ttl  = !isset($provider['ttl']) ? $this->get_ttl() : $provider['ttl'] * 60 * 60;
-
-        //        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
+        $jwt_ttl  = !isset($provider['ttl']) ? $this->config['ttl']  : $provider['ttl'];
+        $this->jwt_ttl_time = $jwt_ttl * (60 * 60);
+//
+//        //        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
     }
 
     /**
@@ -43,66 +44,6 @@ class Payload extends Base
     }
 
     /**
-     * jwt_header
-     *
-     * @return array
-     * @author wumengmeng <wu_mengmeng@foxmail.com>
-     */
-    private function jwt_header()
-    {
-        return [
-          'typ' => 'hashyoo-jwt-auth',
-          'alg' => $this->config['algo'],
-        ];
-    }
-
-    /**
-     * 声明
-     *
-     * @param int $n_user_id
-     *
-     * @return array
-     * @author wumengmeng <wu_mengmeng@foxmail.com>
-     */
-    private function claim($n_user_id = 0)
-    {
-        $now_time        = time();
-        $ttl_time        = $this->jwt_ttl;
-        $arr_data        = [];
-        $arr_data['iat'] = $now_time;
-        $arr_data['exp'] = $now_time + $ttl_time;
-        $arr_data['lft'] = $ttl_time;
-        $arr_data['sub'] = $n_user_id;
-        return $arr_data;
-    }
-
-    /**
-     * payload - header
-     *
-     * @return mixed
-     * @author wumengmeng <wu_mengmeng@foxmail.com>
-     */
-    private function payload_header()
-    {
-        $payload_header = $this->base64_json_encode($this->jwt_header());
-        return $payload_header;
-    }
-
-    /**
-     * payload - claim
-     *
-     * @param int $n_user_id
-     *
-     * @return mixed
-     * @author wumengmeng <wu_mengmeng@foxmail.com>
-     */
-    private function payload_claim($n_user_id = 0)
-    {
-        $payload_claim = $this->base64_json_encode($this->claim($n_user_id));
-        return $payload_claim;
-    }
-
-    /**
      * payload
      *
      * @param int $n_user_id
@@ -112,12 +53,25 @@ class Payload extends Base
      */
     public function get_payload($n_user_id = 0)
     {
-        //playload-header
-        $payload_header = $this->payload_header();
+        /* playload-header */
+        $arr_data =  [
+          'typ' => 'hashyoo-jwt-auth',
+          'alg' => $this->config['algo'],
+        ];
+        $payload_header = $this->base64_json_encode($arr_data);
 
-        //playload-claim
-        $payload_claim = $this->payload_claim($n_user_id);
+        /* playload-claim */
+        $now_time        = time();
+        $ttl_time        = $this->jwt_ttl_time;
+        $arr_data        = [
+          'iat'=>$now_time,
+          'exp'=>$now_time + $ttl_time,
+          'lft'=>$ttl_time,
+          'sub'=>$n_user_id,
+        ];
+        $payload_claim = $this->base64_json_encode($arr_data);
 
+        /* playload */
         $payload = $payload_header . '.' . $payload_claim;
         return $payload;
     }
