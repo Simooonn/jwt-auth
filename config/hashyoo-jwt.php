@@ -47,9 +47,9 @@ return [
     'users' => [
       'driver' => 'eloquent',// 1.eloquent - laravel ORM 目前只有这一种
       'model'  => App\User::class,
-    /*  'ttl'=>2,//token有效时间 单位小时 设置后优先使用此值
-      'signin_mode' => 'me',//登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment) 设置后优先使用此值
-      'pass_key'=>'password',*/
+      /*  'ttl'=>2,//token有效时间 单位小时 设置后优先使用此值
+        'signin_mode' => 'me',//登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment) 设置后优先使用此值
+        'pass_key'=>'password',*/
     ],
 
     // 'users' => [

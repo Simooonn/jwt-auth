@@ -14,27 +14,34 @@ class Token extends Base
     private $new_payload;
 
     private $new_sign;
+
     private $guard;
+
     private $token;
+
     private $user;
+
     private $model_query;
+
     private $provider_signin_mode;
 
-    public function __construct($guard,$provider)
+    public function __construct($guard, $provider)
     {
         parent::__construct();
         $this->new_sign             = new Sign();
         $this->guard                = $guard;
         $this->new_payload          = new Payload($provider);
-        $this->model_query = new Model($provider);
+        $this->model_query          = new Model($provider);
         $this->provider_signin_mode = $provider['signin_mode'];
     }
 
-    private function get_redis_key_token(){
+    private function get_redis_key_token()
+    {
         return $this->redis_token_prefix . $this->guard['provider'] . '_';
     }
 
-    private function get_redis_key_user(){
+    private function get_redis_key_user()
+    {
         return $this->redis_user_prefix . $this->guard['provider'] . '_';
     }
 
@@ -44,11 +51,10 @@ class Token extends Base
      * @return int
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    protected function get_user_expire(){
+    protected function get_user_expire()
+    {
         return intval($this->redis_user_expiretime * 60 * 60);
     }
-
-
 
 
     private function provider_signin_mode()
@@ -72,7 +78,7 @@ class Token extends Base
         }
         $arr_token = explode('.', $token);
         if (count($arr_token) != 3) {
-//            return  yoo_hello_error('token参数格式错误');
+            //            return  yoo_hello_error('token参数格式错误');
             throw new \Exception('token参数格式错误');
         }
 
@@ -138,11 +144,11 @@ class Token extends Base
      */
     private function redis_save_user()
     {
-        $arr_user = $this->user;
-        $n_user_id = $arr_user['id'];
-        $redis_key    = $this->get_redis_key_user() . $n_user_id;
-        $n_redis_db   = $this->redis_db;
-//        $arr_user     = $this->model_query->find($n_user_id);
+        $arr_user   = $this->user;
+        $n_user_id  = $arr_user['id'];
+        $redis_key  = $this->get_redis_key_user() . $n_user_id;
+        $n_redis_db = $this->redis_db;
+        //        $arr_user     = $this->model_query->find($n_user_id);
         $n_expiretime = $this->get_user_expire();
         predis_str_set($redis_key, $arr_user, $n_expiretime, $n_redis_db);
 
@@ -162,13 +168,13 @@ class Token extends Base
     {
         $n_user_id = $user['id'];
         $n_user_id = intval($n_user_id);
-        $payload = $this->new_payload->get_payload($n_user_id);
+        $payload   = $this->new_payload->get_payload($n_user_id);
 
         //签名signature
         $signature   = $this->new_sign->signature($payload);
         $token       = $payload . '.' . $signature;
         $this->token = $token;
-        $this->user = $user;
+        $this->user  = $user;
 
         $guard_driver = $this->guard['driver'];
         if ($guard_driver == 'session') {
@@ -183,8 +189,9 @@ class Token extends Base
         return $token;
     }
 
-    private function get_token(){
-        if(empty($this->token)){
+    private function get_token()
+    {
+        if (empty($this->token)) {
             $guard_driver = $this->guard['driver'];
             $token_key    = $this->config['token_key'];
             if ($guard_driver == 'session') {
@@ -261,31 +268,30 @@ class Token extends Base
     }
 
 
-        /**
-         * 获取用户信息
-         *
-         * @return mixed|null
-         * @author wumengmeng <wu_mengmeng@foxmail.com>
-         */
-        public function get_user()
-        {
-            $n_user_id = $this->claim_user_id();
-            if ($n_user_id === null) {
-                return null;
-            }
-
-            $redis_key  = $this->get_redis_key_user() . $n_user_id;
-            $n_redis_db = $this->redis_db;
-            $arr_user   = predis_str_get($redis_key, $n_redis_db);
-            if (is_null($arr_user)) {
-                $arr_user     = $this->model_query->find($n_user_id);
-                $n_expiretime = $this->get_user_expire();
-                predis_str_set($redis_key, $arr_user, $n_expiretime, $n_redis_db);
-            }
-
-            return $arr_user;
+    /**
+     * 获取用户信息
+     *
+     * @return mixed|null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function get_user()
+    {
+        $n_user_id = $this->claim_user_id();
+        if ($n_user_id === null) {
+            return null;
         }
 
+        $redis_key  = $this->get_redis_key_user() . $n_user_id;
+        $n_redis_db = $this->redis_db;
+        $arr_user   = predis_str_get($redis_key, $n_redis_db);
+        if (is_null($arr_user)) {
+            $arr_user     = $this->model_query->find($n_user_id);
+            $n_expiretime = $this->get_user_expire();
+            predis_str_set($redis_key, $arr_user, $n_expiretime, $n_redis_db);
+        }
+
+        return $arr_user;
+    }
 
 
 }

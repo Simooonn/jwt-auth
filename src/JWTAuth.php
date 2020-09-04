@@ -20,7 +20,8 @@ class JWTAuth
         $this->model_jwt = new JWT();
     }
 
-    public function guard($module = ''){
+    public function guard($module = '')
+    {
         $this->model_jwt = new JWT($module);
         return $this;
         //        dd($this);

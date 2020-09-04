@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\Hash;
 
 class JWT extends Base
 {
+
     private $model_query;//
+
     private $model_token;//
+
     private $model_guard;//
 
     public function __construct($module = '')
@@ -21,11 +24,11 @@ class JWT extends Base
         parent::__construct();
         $this->model_guard = new Guard($module);
 
-        $provider = $this->model_guard->get_provider();
+        $provider          = $this->model_guard->get_provider();
         $this->model_query = new Model($provider);
 
-        $guard = $this->model_guard->get_guard();
-        $this->model_token     = new Token($guard,$provider);
+        $guard             = $this->model_guard->get_guard();
+        $this->model_token = new Token($guard, $provider);
 
     }
 
@@ -53,7 +56,7 @@ class JWT extends Base
             return false;
         }
         $n_uid = intval($user['id']);
-        if($n_uid <= 0){
+        if ($n_uid <= 0) {
             return false;
         }
 
@@ -64,7 +67,7 @@ class JWT extends Base
 
         //设置token
         $this->user = $user;
-        $token = $this->model_token->create_token($user);
+        $token      = $this->model_token->create_token($user);
         return $token;
     }
 
