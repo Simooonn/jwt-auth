@@ -14,7 +14,7 @@
   ],
   "require": {
     "php": ">=5.6.0",
-    "hashyoo/predis-function": "dev-master",
+    "hashyoo/predis-function": "*",
     "illuminate/database": "*"
   },
   "require-dev": {
