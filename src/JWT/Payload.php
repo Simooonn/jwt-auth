@@ -13,20 +13,12 @@ use Illuminate\Support\Facades\Request;
 
 class Payload extends Base
 {
-
-////    private $guard;//当前使用的guard
-////
-////    private $provider;//当前使用的provider
-//
     private $jwt_ttl_time;//token有效期
-//
     public function __construct($provider)
     {
         parent::__construct();
         $jwt_ttl  = !isset($provider['ttl']) ? $this->config['ttl']  : $provider['ttl'];
         $this->jwt_ttl_time = $jwt_ttl * (60 * 60);
-//
-//        //        $this->redis_key_token = $this->redis_token_prefix.$this->guard['provider'].'_';
     }
 
     /**

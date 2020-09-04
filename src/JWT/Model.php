@@ -89,35 +89,35 @@ class Model
         }
         return $user;
     }
-//
-//    /**
-//     * 根据数据id查询一条数据
-//     *
-//     * @param int $n_id
-//     *
-//     * @return null
-//     * @author wumengmeng <wu_mengmeng@foxmail.com>
-//     */
-//    public function find($n_id = 0)
-//    {
-//        $provider_driver = $this->provider_driver;
-//        $provider_model  = $this->model;
-//        switch ($provider_driver) {
-//            case 'eloquent':
-//                //yoo_array_remove($login_data, [$password])
-//                //                $s_password = $user->password;
-//                $user = $provider_model->find($n_id);
-//                if (is_null($user)) {
-//                    return null;
-//                }
-//                $user = $user->toarray();
-//                break;
-//            default:
-//                return null;
-//
-//        }
-//        return $user;
-//    }
+
+    /**
+     * 根据数据id查询一条数据
+     *
+     * @param int $n_id
+     *
+     * @return null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function find($n_id = 0)
+    {
+        $provider_driver = $this->provider_driver;
+        $provider_model  = $this->model;
+        switch ($provider_driver) {
+            case 'eloquent':
+                //yoo_array_remove($login_data, [$password])
+                //                $s_password = $user->password;
+                $user = $provider_model->find($n_id);
+                if (is_null($user)) {
+                    return null;
+                }
+                $user = $user->toarray();
+                break;
+            default:
+                return null;
+
+        }
+        return $user;
+    }
 
 
 }

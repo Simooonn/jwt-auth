@@ -8,7 +8,6 @@
 
 namespace HashyooJWTAuth;
 
-use HashyooJWTAuth\JWT\Guard;
 use HashyooJWTAuth\JWT\JWT;
 
 class JWTAuth
@@ -37,10 +36,7 @@ class JWTAuth
      */
     public function attempt($login_data = [])
     {
-        $result = $this->model_jwt->attempt($login_data);
-
-
-        dd($result);
+        return $this->model_jwt->attempt($login_data);
     }
 
     /**
@@ -51,8 +47,7 @@ class JWTAuth
      */
     public function refresh_token()
     {
-
-
+        return $this->model_jwt->refresh_token();
     }
 
     /**
@@ -63,7 +58,7 @@ class JWTAuth
      */
     public function check()
     {
-
+        return $this->model_jwt->check();
     }
 
     /**
@@ -74,6 +69,7 @@ class JWTAuth
      */
     public function user_id()
     {
+        return $this->model_jwt->user_id();
 
     }
 
@@ -85,7 +81,7 @@ class JWTAuth
      */
     public function user()
     {
-
+        return $this->model_jwt->user();
     }
 
     /**
@@ -96,6 +92,7 @@ class JWTAuth
      */
     public function loginout()
     {
+        return $this->model_jwt->loginout();
 
     }
 
