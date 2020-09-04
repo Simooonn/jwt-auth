@@ -16,7 +16,7 @@ composer require hashyoo/jwt-auth
 > ### 2、添加config文件
 
 ```
-php artisan vendor:publish --provider="HashyooJWTAuth\Providers\LaravelServiceProvider"
+php artisan vendor:publish --provider="HashyooJWTAuth\Providers\JWTAuthProvider"
 ```
 
 ## config文件说明
