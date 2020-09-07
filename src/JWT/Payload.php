@@ -14,11 +14,13 @@ use Illuminate\Support\Facades\Request;
 class Payload extends Base
 {
 
+    private $guard;//guard
     private $jwt_ttl_time;//token有效期
 
-    public function __construct($provider)
+    public function __construct($guard, $provider)
     {
         parent::__construct();
+        $this->guard = $guard;
         $jwt_ttl            = !isset($provider['ttl']) ? $this->config['ttl'] : $provider['ttl'];
         $this->jwt_ttl_time = $jwt_ttl * (60 * 60);
     }
@@ -61,6 +63,7 @@ class Payload extends Base
           'iat' => $now_time,
           'exp' => $now_time + $ttl_time,
           'lft' => $ttl_time,
+          'mdl' => $this->guard['provider'],
           'sub' => $n_user_id,
         ];
         $payload_claim = $this->base64_json_encode($arr_data);

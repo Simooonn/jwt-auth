@@ -12,11 +12,7 @@ return [
 
   'token_key' => 'jwt-token',//header头部token key
 
-  'signin_mode' => 'se',//登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
-
   'secret' => env('JWT_SECRET'),//算法私钥
-
-  'ttl' => env('JWT_TTL', 60),//token有效时间 单位小时
 
   'algo' => env('JWT_ALGO', 'HS256'),//token生成算法
 

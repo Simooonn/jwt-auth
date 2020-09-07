@@ -32,20 +32,20 @@ class Guard extends Base
         $this->guards         = $config['guards'];
         $this->providers      = $config['providers'];
 
-        /*   if (is_null($this->defaults_guard)) {
-               throw new \Exception('没有设置默认的guard');
-           }*/
+        if (is_null($this->defaults_guard)) {
+            throw new \Exception('配置错误&没有设置默认的guard');
+        }
 
         /*设置guard和provider*/
         $module   = empty($module) ? $this->defaults_guard : $module;
         $guard    = $this->guards[$module];
         $provider = $this->providers[$guard['provider']];
-        /*   if (is_null($guard)) {
-               throw new \Exception('没有找到对应的guard');
-           }
-           if (is_null($provider)) {
-               throw new \Exception('没有找到对应的provider');
-           }*/
+        if (is_null($guard)) {
+            throw new \Exception('配置错误&没有找到对应的guard');
+        }
+        if (is_null($provider)) {
+            throw new \Exception('配置错误&没有找到对应的provider');
+        }
 
         $this->guard                = $guard;
         $this->provider             = $provider;

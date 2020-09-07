@@ -30,7 +30,7 @@ class Token extends Base
         parent::__construct();
         $this->new_sign             = new Sign();
         $this->guard                = $guard;
-        $this->new_payload          = new Payload($provider);
+        $this->new_payload          = new Payload($guard, $provider);
         $this->model_query          = new Model($provider);
         $this->provider_signin_mode = $provider['signin_mode'];
     }
@@ -66,20 +66,28 @@ class Token extends Base
     /**
      *
      *
-     * @return array
-     * @throws \Exception
+     * @return array|bool
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
     private function arr_token()
     {
         $token = $this->get_token();
         if (empty($token)) {
-            throw new \Exception('token不存在');
+            return false;
+            /*$arr_data = [
+              'msg'=>'参数错误',
+              'err_msg'=>'token不存在',
+            ];
+            throw new \Exception(yoo_param_str($arr_data,false));*/
         }
         $arr_token = explode('.', $token);
         if (count($arr_token) != 3) {
-            //            return  yoo_hello_error('token参数格式错误');
-            throw new \Exception('token参数格式错误');
+            return false;
+            /*$arr_data = [
+              'msg'=>'参数错误',
+              'err_msg'=>'token参数格式错误',
+            ];
+            throw new \Exception(yoo_param_str($arr_data,false));*/
         }
 
         return $arr_token;
@@ -109,6 +117,27 @@ class Token extends Base
     {
         $n_user_id = intval($this->get_arr_claim()['sub']);
         return $n_user_id;
+    }
+
+    /**
+     * redis存放 tt
+     *
+     *
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    private function redis_save_tt()
+    {
+        $token      = $this->get_token();
+        $n_lifetime = $this->claim_lifetime();
+        $n_userid   = $this->claim_user_id();
+
+        $arr_jwt_token = [
+          'id'           => $n_userid,
+          'access_token' => $token,
+        ];
+        $redis_key     = $this->redis_tt . md5($token);
+        $n_db          = $this->redis_db;
+        predis_str_set($redis_key, $arr_jwt_token, $n_lifetime, $n_db);
     }
 
     /**
@@ -164,17 +193,24 @@ class Token extends Base
      * @return string
      * @author wumengmeng <wu_mengmeng@foxmail.com>
      */
-    public function create_token($user = [])
+    public function create_token($n_user_id = 0)
     {
-        $n_user_id = $user['id'];
         $n_user_id = intval($n_user_id);
+        if($n_user_id == 0){
+            return false;
+        }
+        $arr_user     = $this->model_query->find($n_user_id);
+        if(empty($arr_user)){
+            return false;
+        }
+
         $payload   = $this->new_payload->get_payload($n_user_id);
 
         //签名signature
         $signature   = $this->new_sign->signature($payload);
         $token       = $payload . '.' . $signature;
         $this->token = $token;
-        $this->user  = $user;
+        $this->user  = $arr_user;
 
         $guard_driver = $this->guard['driver'];
         if ($guard_driver == 'session') {
@@ -183,7 +219,19 @@ class Token extends Base
             $_SESSION[$token_key] = $token;
         }
 
+
+        $n_db           = $this->redis_db;
+        $redis_key      = $this->get_redis_key_token() . $n_user_id;
+        $arr_user_token = predis_str_get($redis_key, $n_db);
+        $s_user_token   = $arr_user_token['access_token'];
+        if ($this->provider_signin_mode() == 'se') {
+            /* 删除 redis_tt */
+            $redis_key     = $this->redis_tt . md5($s_user_token);
+            $result = predis_str_del($redis_key, $n_db);
+        }
+
         //redis存放 token
+        $this->redis_save_tt();
         $this->redis_save_token();
         $this->redis_save_user();
         return $token;
@@ -209,10 +257,18 @@ class Token extends Base
     public function check_token()
     {
         $token = $this->get_token();
-        if (is_null($token)) {
+        if (empty($token)) {
             return false;
         }
-        $arr_token = $this->arr_token();
+
+        $redis_key     = $this->redis_tt . md5($token);
+        $n_db          = $this->redis_db;
+        $result = predis_str_get($redis_key, $n_db);
+        if (empty($result)) {
+            return false;
+        }
+
+        /*$arr_token = $this->arr_token();
 
         //签名验证 token是否合法
         $payload    = $arr_token[0] . '.' . $arr_token[1];
@@ -220,15 +276,15 @@ class Token extends Base
         $signature  = $this->new_sign->signature($payload);
         if ($token_sign != $signature) {
             return false;
-        }
+        }*/
 
         //验证token是否过期
-        $expire_time = $this->claim_expiretime();
+//        $expire_time = $this->claim_expiretime();
         $n_userid    = $this->claim_user_id();
-        $now_time    = time();
-        if ($now_time >= $expire_time) {
-            return false;
-        }
+//        $now_time    = time();
+//        if ($now_time >= $expire_time) {
+//            return false;
+//        }
 
         $redis_key      = $this->get_redis_key_token() . $n_userid;
         $n_db           = $this->redis_db;
@@ -237,34 +293,23 @@ class Token extends Base
 
         //登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
         $signin_mode = $this->provider_signin_mode();
-        /*        switch ($signin_mode)
-                {
-                    case 'se':
-                        if($token === $s_user_token){
-                            return true;
-                        }
-                        else{
-                            return false;
-                        }
-                        break;
-
-                    case 'me':
-                        //多设备登录时，一个设备退出登录时出现问题，需要给token存redis，并设置有效期
-        //                if($token === $s_user_token){
-        //                    return true;
-        //                }
-        //                else{
-        //                    return false;
-        //                }
-                        break;
-                    default:
-                        return false;
-                }*/
         if ($signin_mode == 'se' && ($token !== $s_user_token)) {
             return false;
         }
 
         return true;
+    }
+
+
+    public function refresh_token(){
+        $token = $this->get_token();
+        if (empty($token)) {
+            return false;
+        }
+
+        $n_user_id    = $this->claim_user_id();
+        $token = $this->create_token($n_user_id);
+        return $token;
     }
 
 
@@ -291,6 +336,33 @@ class Token extends Base
         }
 
         return $arr_user;
+    }
+
+
+    public function login_out(){
+        $token = $this->get_token();
+        if(!empty($token)){
+            /* 删除 redis_tt */
+            $redis_key     = $this->redis_tt . md5($token);
+            $n_db          = $this->redis_db;
+            $result = predis_str_del($redis_key, $n_db);
+
+            /* 删除 redis_token */
+            $n_userid    = $this->claim_user_id();
+            $redis_key      = $this->get_redis_key_token() . $n_userid;
+            $arr_user_token = predis_str_get($redis_key, $n_db);
+            $s_user_token   = $arr_user_token['access_token'];
+
+            //登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
+            $signin_mode = $this->provider_signin_mode();
+            if ($signin_mode == 'se' && ($token == $s_user_token)) {
+                //删除 redis_token
+
+                $result = predis_str_del($redis_key, $n_db);
+            }
+        }
+
+        return true;
     }
 
 

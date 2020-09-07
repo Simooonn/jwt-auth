@@ -67,7 +67,7 @@ class JWT extends Base
 
         //设置token
         $this->user = $user;
-        $token      = $this->model_token->create_token($user);
+        $token      = $this->model_token->create_token($n_uid);
         return $token;
     }
 
@@ -79,7 +79,8 @@ class JWT extends Base
      */
     public function refresh_token()
     {
-        return $this->token;
+        $result = $this->model_token->refresh_token();
+        return $result;
     }
 
     /**
@@ -117,6 +118,9 @@ class JWT extends Base
      */
     public function user()
     {
+        if ($this->check() !== true) {
+            return null;
+        }
         $arr_user = $this->model_token->get_user();
         return $arr_user;
     }
@@ -129,20 +133,8 @@ class JWT extends Base
      */
     public function loginout()
     {
-        $n_userid = $this->user_id();
-        if ($n_userid === null) {
-            return true;
-        }
-
-        $redis_key = $this->redis_key_token . $n_userid;
-        $n_db      = $this->redis_db;
-        $result    = predis_str_del($redis_key, $n_db);
-        if ($result) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        $result = $this->model_token->login_out();
+        return $result;
     }
 
 }
