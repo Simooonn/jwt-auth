@@ -86,6 +86,17 @@ class JWTAuth
     }
 
     /**
+     * 重置用户信息
+     *
+     * @return mixed|null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function reset_user()
+    {
+        return $this->model_jwt->reset_user();
+    }
+
+    /**
      * 用户退出登录
      *
      * @return bool

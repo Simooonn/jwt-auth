@@ -330,11 +330,24 @@ class Token extends Base
         $n_redis_db = $this->redis_db;
         $arr_user   = predis_str_get($redis_key, $n_redis_db);
         if (is_null($arr_user)) {
-            $arr_user     = $this->model_query->find($n_user_id);
-            $n_expiretime = $this->get_user_expire();
-            predis_str_set($redis_key, $arr_user, $n_expiretime, $n_redis_db);
+            $this->set_user();
         }
 
+        return $arr_user;
+    }
+
+
+    public function set_user(){
+        $n_user_id = $this->claim_user_id();
+        if ($n_user_id === null) {
+            return null;
+        }
+
+        $redis_key  = $this->get_redis_key_user() . $n_user_id;
+        $n_redis_db = $this->redis_db;
+        $arr_user     = $this->model_query->find($n_user_id);
+        $n_expiretime = $this->get_user_expire();
+        predis_str_set($redis_key, $arr_user, $n_expiretime, $n_redis_db);
         return $arr_user;
     }
 

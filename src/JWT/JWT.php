@@ -126,6 +126,21 @@ class JWT extends Base
     }
 
     /**
+     * 重置用户信息
+     *
+     * @return mixed|null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function reset_user()
+    {
+        if ($this->check() !== true) {
+            return null;
+        }
+        $arr_user = $this->model_token->set_user();
+        return $arr_user;
+    }
+
+    /**
      * 用户退出登录
      *
      * @return bool
