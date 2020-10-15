@@ -330,7 +330,7 @@ class Token extends Base
         $n_redis_db = $this->redis_db;
         $arr_user   = predis_str_get($redis_key, $n_redis_db);
         if (is_null($arr_user)) {
-            $this->set_user();
+            $arr_user = $this->set_user();
         }
 
         return $arr_user;
