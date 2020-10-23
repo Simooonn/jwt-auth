@@ -37,12 +37,12 @@ class Token extends Base
 
     private function get_redis_key_token()
     {
-        return $this->redis_token_prefix . $this->guard['provider'] . '_';
+        return $this->redis_token_prefix . $this->guard['provider'] . ':';
     }
 
     private function get_redis_key_user()
     {
-        return $this->redis_user_prefix . $this->guard['provider'] . '_';
+        return $this->redis_user_prefix . $this->guard['provider'] . ':';
     }
 
     /**

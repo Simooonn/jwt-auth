@@ -16,6 +16,12 @@ return [
 
   'algo' => env('JWT_ALGO', 'HS256'),//token生成算法
 
+  'signin_mode' => 'se',//登录模式 se-单设备登录(Single equipment) me-多设备登录(More equipment)
+
+  'redis_db'=>null,//数据存放的redis库
+
+  'ttl' => env('JWT_TTL', 600),//token有效时间 单位小时
+
   'required_claims' => [
     'iss',//jwt签发者              登录路由
     'iat',//jwt的签发时间          签发时间戳
