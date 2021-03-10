@@ -119,5 +119,25 @@ class Model
         return $user;
     }
 
+    /**
+     * 获取表主键
+     *
+     * @return null
+     * @author wumengmeng <wu_mengmeng@foxmail.com>
+     */
+    public function getPrimaryKey(){
+        $provider_driver = $this->provider_driver;
+        $provider_model  = $this->model;
+        switch ($provider_driver) {
+            case 'eloquent':
+                $primaryKey = empty($provider_model->getKeyName()) ? 'id':$provider_model->getKeyName();
+                break;
+            default:
+                return 'id';
+
+        }
+        return $primaryKey;
+    }
+
 
 }

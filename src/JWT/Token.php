@@ -174,10 +174,9 @@ class Token extends Base
     private function redis_save_user()
     {
         $arr_user   = $this->user;
-        $n_user_id  = $arr_user['id'];
+        $n_user_id  = $arr_user[$this->model_query->getPrimaryKey()];
         $redis_key  = $this->get_redis_key_user() . $n_user_id;
         $n_redis_db = $this->redis_db;
-        //        $arr_user     = $this->model_query->find($n_user_id);
         $n_expiretime = $this->get_user_expire();
         predis_str_set($redis_key, $arr_user, $n_expiretime, $n_redis_db);
 

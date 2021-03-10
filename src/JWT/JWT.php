@@ -55,7 +55,8 @@ class JWT extends Base
         if (is_null($user)) {
             return false;
         }
-        $n_uid = intval($user['id']);
+        $PrimaryKey = $this->model_query->getPrimaryKey();
+        $n_uid = intval($user[$PrimaryKey]);
         if ($n_uid <= 0) {
             return false;
         }
